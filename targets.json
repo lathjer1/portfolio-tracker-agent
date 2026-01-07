@@ -1,0 +1,100 @@
+{
+  "strategy_name": "Aggressive Growth v1",
+  "as_of_date": "",
+  "buckets": {
+    "Core": {
+      "target_total_pct": [
+        55,
+        55
+      ],
+      "positions": {
+        "VTI": [
+          40,
+          45
+        ],
+        "SCHD": [
+          10,
+          15
+        ]
+      }
+    },
+    "Conviction": {
+      "target_total_pct": [
+        30,
+        30
+      ],
+      "positions": {
+        "AAPL": [
+          7,
+          10
+        ],
+        "MSFT": [
+          7,
+          10
+        ],
+        "KNSL": [
+          5,
+          7
+        ],
+        "JNJ": [
+          3,
+          5
+        ],
+        "O": [
+          2,
+          4
+        ]
+      }
+    },
+    "Speculation": {
+      "target_total_pct": [
+        10,
+        10
+      ],
+      "positions": {
+        "RBLX": [
+          2,
+          3
+        ],
+        "RDW": [
+          1,
+          3
+        ],
+        "KALV": [
+          1,
+          2
+        ],
+        "TEM": [
+          1,
+          2
+        ]
+      }
+    },
+    "Cash": {
+      "target_total_pct": [
+        5,
+        5
+      ],
+      "positions": {
+        "CASH": [
+          5,
+          5
+        ]
+      }
+    }
+  },
+  "hard_caps": {
+    "single_position_pct": 12,
+    "speculation_bucket_pct": 10
+  },
+  "cash_symbols": [
+    "Cash (FZFXX)",
+    "FZFXX",
+    "SPAXX",
+    "FDRXX"
+  ],
+  "alias_map": {
+    "Cash (FZFXX)": "CASH",
+    "Cash": "CASH"
+  }
+}
