@@ -29,6 +29,24 @@ FOOTER_PREFIXES = (
     "Both are Fidelity", "\"Both are Fidelity"
 )
 
+def parse_thesis_sections(thesis_path: Path) -> set[str]:
+    """
+    Reads thesis.md and returns a set of symbols that have a '## SYMBOL' section.
+    """
+    if not thesis_path.exists():
+        return set()
+
+    text = thesis_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    symbols = set()
+    for ln in text:
+        ln = ln.strip()
+        if ln.startswith("## "):
+            sym = ln[3:].strip()
+            # Keep it simple: treat the whole heading as symbol/key
+            if sym:
+                symbols.add(sym)
+    return symbols
+
 def _to_float(x: str) -> Optional[float]:
     s = (x or "").strip()
     if s in ("", "--"):
@@ -137,9 +155,11 @@ def action_for_position(actual_pct: float, target_rng: Tuple[float,float], hard_
         return "TRIM"
     return "HOLD"
 
-def make_report(positions: List[Position], targets: dict) -> str:
+def make_report(positions: List[Position], targets: dict, thesis_symbols: set[str] | None = None) -> str:
     per_symbol_targets, per_bucket_targets = build_target_maps(targets)
     assign_buckets(positions, targets)
+
+    thesis_symbols = thesis_symbols or set()
 
     total = sum(p.value for p in positions if p.value is not None)
     if total <= 0:
@@ -181,6 +201,37 @@ def make_report(positions: List[Position], targets: dict) -> str:
     if "Speculation" in bucket_pcts and bucket_pcts["Speculation"] > spec_cap + 1e-9:
         lines.append("")
         lines.append(f"**Alert:** Speculation bucket is {pct(bucket_pcts['Speculation'])} which is above the cap ({spec_cap:.0f}%).")
+
+    # Thesis coverage
+    lines.append("")
+    lines.append("## Thesis coverage")
+    lines.append("")
+    lines.append("| Symbol | Bucket | Thesis? |")
+    lines.append("|---|---|---|")
+
+    # Only check non-core + non-cash positions that are in targets
+    for p, actual, tr in pos_rows:
+        if p.bucket in ("Core", "Cash"):
+            continue
+        if tr is None:
+            # Not in targets: still helpful to have a thesis if you keep it
+            has = "✅" if p.symbol in thesis_symbols else "⚠️ missing"
+            lines.append(f"| {p.symbol} | {p.bucket} | {has} |")
+            continue
+
+        has = "✅" if p.symbol in thesis_symbols else "⚠️ missing"
+        lines.append(f"| {p.symbol} | {p.bucket} | {has} |")
+
+    missing = []
+    for p, actual, tr in pos_rows:
+        if p.bucket in ("Core", "Cash"):
+            continue
+        if p.symbol not in thesis_symbols:
+            missing.append(p.symbol)
+
+    if missing:
+        lines.append("")
+        lines.append("**Add thesis sections for:** " + ", ".join(sorted(set(missing))))
 
     lines.append("")
     lines.append("## Position actions")
@@ -233,6 +284,7 @@ def main() -> int:
     ap.add_argument("--csv", required=True, help="Path to Fidelity Positions CSV export")
     ap.add_argument("--config", required=True, help="Path to targets.json")
     ap.add_argument("--out", required=True, help="Path to write report.md")
+    ap.add_argument("--thesis", required=False, help="Path to thesis.md (optional)")
     args = ap.parse_args()
 
     csv_path = Path(args.csv)
@@ -240,9 +292,12 @@ def main() -> int:
     out_path = Path(args.out)
 
     targets = load_targets(cfg_path)
+    thesis_symbols = set()
+    if args.thesis:
+        thesis_symbols = parse_thesis_sections(Path(args.thesis))
     raw = read_fidelity_positions(csv_path)
     pos = normalize_positions(raw, targets)
-    report = make_report(pos, targets)
+    report = make_report(pos, targets, thesis_symbols=thesis_symbols)
     out_path.write_text(report, encoding="utf-8")
     print(f"Wrote report to: {out_path}")
     return 0
