@@ -1,0 +1,36 @@
+# -------------------------
+# Data & exports (DO NOT COMMIT)
+# -------------------------
+data/
+*.csv
+*.xlsx
+
+# -------------------------
+# Python artifacts
+# -------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# -------------------------
+# IDE / editor noise
+# -------------------------
+.vscode/
+.idea/
+*.iml
+
+# -------------------------
+# OS junk
+# -------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# Local config / secrets (future-proofing)
+# -------------------------
+.env
+.env.*
